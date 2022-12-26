@@ -25,53 +25,32 @@ namespace DataAccessClient
         static StringBuilder sbProc = new StringBuilder();
         static StringBuilder sbMem = new StringBuilder();
 
-        static int queryCycles = 20;
-        static int numTests = 20;
-        static int numThreads = 10;
-        static int numUsers = 20;
+        static int queryCycles = 2;
+        static int numTests = 2;
+        static int numUsers = 2;
         static bool useGet = true;
-        static bool isCached = false;
         static bool isParallel = false;
         async static Task<bool> GetAPIConnect(int factor)
         {
             List<User> users;
-
-            if (!isCached)
+            for (int i = 0; i < queryCycles*factor; i++)
             {
-                for (int i = 0; i < queryCycles*factor; i++)
-                {
-                    users = await ApiService.GetAllUsersAsync();
-                }
+                users = await ApiService.GetAllUsersAsync();
             }
-            else
-            {
-                for (int i = 0; i < queryCycles; i++)
-                {
-                    users = await ApiServiceCached.GetAllUsersAsync();
-                }
-            }
+            
             return true;
         }
         async static Task<bool> GetAPIConnectParallel(int factor)
         {
             Task[] tasks = new Task[queryCycles*factor];
 
-            if (!isCached)
+
+            for (int i = 0; i < queryCycles*factor; i++)
             {
-                for (int i = 0; i < queryCycles*factor; i++)
-                {
-                    tasks[i] = ApiService.GetAllUsersAsync();
-                }
-                await Task.WhenAll(tasks);
+                tasks[i] = ApiService.GetAllUsersAsync();
             }
-            else
-            {
-                for (int i = 0; i < queryCycles; i++)
-                {
-                    tasks.Append(ApiServiceCached.GetAllUsersAsync());
-                }
-                await Task.WhenAll(tasks);
-            }
+            await Task.WhenAll(tasks);
+
             return true;
         }
 
@@ -162,31 +141,17 @@ namespace DataAccessClient
             List<User> resultsend = new List<User>();
             List<User> resultsDelete = new List<User>();
             users = TestUser.GenerateUserList(numUsers);
-            if (!isCached)
-            {
-                //sbTime.Append($"Executing InsertGetDelete API {queryCycles} times...\n");
 
-                for (int i = 0; i < queryCycles*factor; i++)
-                {
-                    resultsend = await ApiService.CreateNewUsers(users);
-                    _ = await ApiService.GetAllUsersAsync();
-                    resultsDelete = await ApiService.DeleteUsers(resultsend);
-                }
+            //sbTime.Append($"Executing InsertGetDelete API {queryCycles} times...\n");
+
+            for (int i = 0; i < queryCycles*factor; i++)
+            {
+                resultsend = await ApiService.CreateNewUsers(users);
+                _ = await ApiService.GetAllUsersAsync();
+                resultsDelete = await ApiService.DeleteUsers(resultsend);
+            }
                 
 
-            }
-            else
-            {
-                //sbTime.Append($"Executing InsertGetDelete API CACHED {queryCycles} times...\n");
-                for (int i = 0; i < queryCycles*factor; i++)
-                {
-                    resultsend = await ApiService.CreateNewUsers(users);
-                    _ = await ApiServiceCached.GetAllUsersAsync();
-                    resultsDelete = await ApiService.DeleteUsers(resultsend);
-                }
-                
-
-            }
 
 
 
@@ -199,31 +164,17 @@ namespace DataAccessClient
             List<User> resultsend = new List<User>();
             List<User> resultsDelete = new List<User>();
             users = TestUser.GenerateUserList(numUsers);
-            if (!isCached)
+
+
+            for (int i = 0; i < queryCycles*factor; i++)
             {
-                //sbTime.Append($"Executing InsertGetDelete API {queryCycles} times...\n");
-
-                for (int i = 0; i < queryCycles*factor; i++)
-                {
-                    resultsend = await ApiService.CreateNewUsers(users);
-                    _ = await ApiService.GetAllUsersAsync();
-                    resultsDelete = await ApiService.DeleteUsers(resultsend);
-                }
-
-
+                resultsend = await ApiService.CreateNewUsers(users);
+                _ = await ApiService.GetAllUsersAsync();
+                resultsDelete = await ApiService.DeleteUsers(resultsend);
             }
-            else
-            {
-                //sbTime.Append($"Executing InsertGetDelete API CACHED {queryCycles} times...\n");
-                for (int i = 0; i < queryCycles*factor; i++)
-                {
-                    resultsend = await ApiService.CreateNewUsers(users);
-                    _ = await ApiServiceCached.GetAllUsersAsync();
-                    resultsDelete = await ApiService.DeleteUsers(resultsend);
-                }
 
 
-            }
+
         }
 
         static async Task TestGet()
@@ -258,18 +209,12 @@ namespace DataAccessClient
             }
 
 
-            
-            if (isCached)
-            {
-                sbTime.Append($"Executing Get CACHED API {queryCycles} times...\n");
-                sbProc.Append($"Executing Get CACHED API {queryCycles} times...\n");
-                sbMem.Append($"Executing Get CACHED API {queryCycles} times...\n");
-            } else
-            {
-                sbTime.Append($"Executing Get API {queryCycles} times...\n");
-                sbProc.Append($"Executing Get API {queryCycles} times...\n");
-                sbMem.Append($"Executing Get API {queryCycles} times...\n");
-            }
+
+
+            sbTime.Append($"Executing Get API {queryCycles} times...\n");
+            sbProc.Append($"Executing Get API {queryCycles} times...\n");
+            sbMem.Append($"Executing Get API {queryCycles} times...\n");
+
             //Execute GetAPIConnect in one thread
 
             for(int i = 0; i < numTests; i++)
@@ -324,19 +269,10 @@ namespace DataAccessClient
 
 
 
-            if (isCached)
-            {
-                sbTime.Append($"Executing Get CACHED API {queryCycles} times...\n");
-                sbProc.Append($"Executing Get CACHED API {queryCycles} times...\n");
-                sbMem.Append($"Executing Get CACHED API {queryCycles} times...\n");
+            sbTime.Append($"Executing Get API {queryCycles} times...\n");
+            sbProc.Append($"Executing Get API {queryCycles} times...\n");
+            sbMem.Append($"Executing Get API {queryCycles} times...\n");
 
-            }
-            else
-            {
-                sbTime.Append($"Executing Get API {queryCycles} times...\n");
-                sbProc.Append($"Executing Get API {queryCycles} times...\n");
-                sbMem.Append($"Executing Get API {queryCycles} times...\n");
-            }
             //Execute GetAPIConnect in one thread
 
             for (int i = 0; i < numTests; i++)
@@ -477,16 +413,17 @@ namespace DataAccessClient
                 if(isParallel)
                 {
                     await TestGetParallel();
-                    await File.WriteAllTextAsync("G:\\My Drive\\uAlberta\\Year 4\\TestLogs\\TestGetParallel2.txt", sbTime.ToString());
-                    await File.WriteAllTextAsync("G:\\My Drive\\uAlberta\\Year 4\\TestLogs\\TestGetParallelProc2.txt", sbProc.ToString());
-                    await File.WriteAllTextAsync("G:\\My Drive\\uAlberta\\Year 4\\TestLogs\\TestGetParallelMem2.txt", sbMem.ToString());
+                    await File.WriteAllTextAsync("..\\..\\..\\..\\TestLogs\\TestGetParallel.txt", sbTime.ToString());
+                    await File.WriteAllTextAsync("..\\..\\..\\..\\TestLogs\\TestGetParallelProc.txt", sbProc.ToString());
+                    await File.WriteAllTextAsync("..\\..\\..\\..\\TestLogs\\TestGetParallelMem.txt", sbMem.ToString());
+                    
                 }
                 else
                 {
                     await TestGet();
-                    await File.WriteAllTextAsync("G:\\My Drive\\uAlberta\\Year 4\\TestLogs\\TestGetSerial2.txt", sbTime.ToString());
-                    await File.WriteAllTextAsync("G:\\My Drive\\uAlberta\\Year 4\\TestLogs\\TestGetSerialProc2.txt", sbProc.ToString());
-                    await File.WriteAllTextAsync("G:\\My Drive\\uAlberta\\Year 4\\TestLogs\\TestGetSerialMem2.txt", sbMem.ToString());
+                    await File.WriteAllTextAsync("..\\..\\..\\..\\TestLogs\\TestGetSerial.txt", sbTime.ToString());
+                    await File.WriteAllTextAsync("..\\..\\..\\..\\TestLogs\\TestGetSerialProc.txt", sbProc.ToString());
+                    await File.WriteAllTextAsync("..\\..\\..\\..\\TestLogs\\TestGetSerialMem.txt", sbMem.ToString());
                 }
 
             }
@@ -495,18 +432,19 @@ namespace DataAccessClient
                 if(isParallel)
                 {
                     await TestInsertGetDeleteParallel();
-                    await File.WriteAllTextAsync("G:\\My Drive\\uAlberta\\Year 4\\TestLogs\\TestInsertGetDeleteParallel2.txt", sbTime.ToString());
-                    await File.WriteAllTextAsync("G:\\My Drive\\uAlberta\\Year 4\\TestLogs\\TestInsertGetDeleteParallelProc2.txt", sbProc.ToString());
-                    await File.WriteAllTextAsync("G:\\My Drive\\uAlberta\\Year 4\\TestLogs\\TestInsertGetDeleteParallelMem2.txt", sbMem.ToString());
+                    await File.WriteAllTextAsync("..\\..\\..\\..\\TestLogs\\TestInsertGetDeleteParallel.txt", sbTime.ToString());
+                    await File.WriteAllTextAsync("..\\..\\..\\..\\TestLogs\\TestInsertGetDeleteParallelProc.txt", sbProc.ToString());
+                    await File.WriteAllTextAsync("..\\..\\..\\..\\TestLogs\\TestInsertGetDeleteParallelMem.txt", sbMem.ToString());
                 }
                 else
                 {
                     await TestInsertGetDelete();
-                    await File.WriteAllTextAsync("G:\\My Drive\\uAlberta\\Year 4\\TestLogs\\TestInsertGetDeleteSerial2.txt", sbTime.ToString());
-                    await File.WriteAllTextAsync("G:\\My Drive\\uAlberta\\Year 4\\TestLogs\\TestInsertGetDeleteSerialProc2.txt", sbProc.ToString());
-                    await File.WriteAllTextAsync("G:\\My Drive\\uAlberta\\Year 4\\TestLogs\\TestInsertGetDeleteSerialMem2.txt", sbMem.ToString());
+                    await File.WriteAllTextAsync("..\\..\\..\\..\\TestLogs\\TestInsertGetDeleteSerial.txt", sbTime.ToString());
+                    await File.WriteAllTextAsync("..\\..\\..\\..\\TestLogs\\TestInsertGetDeleteSerialProc.txt", sbProc.ToString());
+                    await File.WriteAllTextAsync("..\\..\\..\\..\\TestLogs\\TestInsertGetDeleteSerialMem.txt", sbMem.ToString());
                 }
             }
+            Console.WriteLine("Logs stored at WKEXP905\\TestLogs)");
 
         }
         
